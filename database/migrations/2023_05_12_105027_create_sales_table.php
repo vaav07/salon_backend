@@ -19,7 +19,11 @@ return new class extends Migration
             // Add user_id column
             $table->unsignedBigInteger('user_id')->nullable();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+
+            //need to make it nullable if client doesn't want it
             $table->unsignedBigInteger('employee_id');
+            $table->foreign('employee_id')->references('id')->on('employees');
+
             $table->unsignedBigInteger('customer_id');
             $table->unsignedBigInteger('service_id');
             $table->date('sale_date')->nullable();
@@ -28,7 +32,6 @@ return new class extends Migration
             $table->decimal('total_price', 8, 2);
             $table->timestamps();
 
-            $table->foreign('employee_id')->references('id')->on('employees');
             $table->foreign('customer_id')->references('id')->on('customers');
             $table->foreign('service_id')->references('id')->on('services');
         });

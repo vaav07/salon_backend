@@ -17,8 +17,8 @@ return new class extends Migration
             $table->foreign('admin_id')->references('id')->on('admins')->onDelete('cascade');
 
             // Add user_id column
-            $table->unsignedBigInteger('user_id')->nullable();
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            // $table->unsignedBigInteger('user_id')->nullable();
+            // $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->string('service_name');
             $table->text('description')->nullable();
             $table->decimal('price', 8, 2);

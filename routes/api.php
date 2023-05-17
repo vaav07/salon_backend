@@ -22,19 +22,26 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 // USER
-
 Route::post('login', [AuthController::class, 'login']);
 Route::group([
-
     'middleware' => 'api',
     // 'prefix' => 'auth'
-
 ], function ($router) {
-
     Route::post('logout', [AuthController::class, 'logout']);
     Route::post('refresh', [AuthController::class, 'refresh']);
     Route::post('me', [AuthController::class, 'me']);
+
+    Route::get('getcustomers/{id}', [AuthController::class, 'getCustomer']);
+    Route::get('getemployees/{id}', [AuthController::class, 'getEmployee']);
+    Route::get('getservices', [AuthController::class, 'getService']);
+    Route::get('getreports/{id}', [AuthController::class, 'allReports']);
+
+    Route::post('addcustomer', [AuthController::class, 'addCustomer']);
+    Route::post('addemployee', [AuthController::class, 'addEmployee']);
+    Route::post('addservice', [AuthController::class, 'addService']);
+    Route::post('addsale', [AuthController::class, 'addSale']);
 });
+
 
 //ADMIN
 Route::post('admin/login', [AdminController::class, 'login']);

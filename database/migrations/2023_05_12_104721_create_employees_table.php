@@ -19,10 +19,10 @@ return new class extends Migration
             // Add user_id column
             $table->unsignedBigInteger('user_id')->nullable();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->string('employee_fullname', 60);
+            $table->string('fullname', 60);
             $table->string('email', 40)->unique();
-            $table->integer('phone_no');
-            $table->integer('alt_phone_no')->nullable();
+            $table->string('phone_no', 10)->unique();
+            $table->string('alt_phone_no', 10)->nullable();
             $table->string('address')->nullable();
             $table->string('state', 50);
             $table->string('city', 50);
