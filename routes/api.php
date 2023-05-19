@@ -31,15 +31,27 @@ Route::group([
     Route::post('refresh', [AuthController::class, 'refresh']);
     Route::post('me', [AuthController::class, 'me']);
 
-    Route::get('getcustomers/{id}', [AuthController::class, 'getCustomer']);
-    Route::get('getemployees/{id}', [AuthController::class, 'getEmployee']);
-    Route::get('getservices', [AuthController::class, 'getService']);
-    Route::get('getreports/{id}', [AuthController::class, 'allReports']);
-
+    //customer
     Route::post('addcustomer', [AuthController::class, 'addCustomer']);
+    Route::get('getcustomers/{id}', [AuthController::class, 'getCustomer']);
+    Route::get('getspecificCustomer/{id}', [AuthController::class, 'getSpecificCustomer']);
+    Route::put('updatespecificCustomer/{id}', [AuthController::class, 'updateCustomer']);
+
+    //employee
     Route::post('addemployee', [AuthController::class, 'addEmployee']);
+    Route::get('getemployees/{id}', [AuthController::class, 'getEmployee']);
+    Route::get('getspecificEmployee/{id}', [AuthController::class, 'getSpecificEmployee']);
+    Route::put('updatespecificEmployee/{id}', [AuthController::class, 'updateEmpolyee']);
+
+    //services
     Route::post('addservice', [AuthController::class, 'addService']);
+    Route::get('getservices', [AuthController::class, 'getService']);
+
+    //sales
     Route::post('addsale', [AuthController::class, 'addSale']);
+
+    //reports
+    Route::get('getreports/{id}', [AuthController::class, 'allReports']);
 });
 
 

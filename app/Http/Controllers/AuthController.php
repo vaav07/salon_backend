@@ -96,6 +96,13 @@ class AuthController extends Controller
         return ["result" => $getCustomer];
     }
 
+    public function getSpecificCustomer($id)
+    {
+        $specificCustomer = Customer::find($id);
+
+        return ["result" => $specificCustomer];
+    }
+
     public function addCustomer(Request $req)
     {
         $customer = new Customer();
@@ -120,6 +127,18 @@ class AuthController extends Controller
         }
     }
 
+    public function updateCustomer(Request $req, $id)
+    {
+        // Find the resource
+        $resource = Customer::findOrFail($id);
+
+        // Update the resource
+        $resource->update($req->all());
+
+        // Return a response
+        return response()->json(['message' => 'Resource updated successfully']);
+    }
+
     public function getEmployee($id)
     {
         $getEmployee = Employee::where("user_id", $id)->get();
@@ -132,7 +151,7 @@ class AuthController extends Controller
         $employee = new Employee();
         $employee->admin_id = $req->admin_id;
         $employee->user_id = $req->user_id;
-        $employee->employee_fullname = $req->customer_fullname;
+        $employee->employee_fullname = $req->employee_fullname;
         $employee->email = $req->email;
         $employee->phone_no = $req->phone_no;
         $employee->alt_phone_no = $req->alt_phone_no;
@@ -152,6 +171,25 @@ class AuthController extends Controller
         }
     }
 
+    public function getSpecificEmployee($id)
+    {
+        $specificCEmployee = Employee::find($id);
+
+        return ["result" => $specificCEmployee];
+    }
+
+    public function updateEmpolyee(Request $req, $id)
+    {
+        // Find the resource
+        $resource = Employee::findOrFail($id);
+
+        // Update the resource
+        $resource->update($req->all());
+
+        // Return a response
+        return response()->json(['message' => 'Resource updated successfully']);
+    }
+
     public function getService()
     {
         $getService = Service::all();
@@ -163,11 +201,12 @@ class AuthController extends Controller
     public function addService(Request $req)
     {
         $service = new Service();
-        $service->admin_id = $req->admin_id;
-        $service->user_id = $req->user_id;
-        $service->service_name = $req->service_name;
-        $service->description = $req->description;
-        $service->price = $req->price;
+        // $service->admin_id = $req->admin_id;
+        // $service->user_id = $req->user_id;
+        // $service->service_name = $req->service_name;
+        // $service->description = $req->description;
+        // $service->price = $req->price;
+        $service->fill($req->all());
 
         $result = $service->save();
         if ($result) {
@@ -188,7 +227,7 @@ class AuthController extends Controller
             ->join('customers', 'sales.customer_id', '=', 'customers.id')
             ->join('employees', 'sales.employee_id', '=', 'employees.id')
             ->join('services', 'sales.service_id', '=', 'services.id')
-            ->select('customers.customer_fullname as customer_name', 'customers.email', 'customers.phone_no', 'customers.alt_phone_no', 'customers.address', 'services.service_name as service_name', 'employees.employee_fullname as employee_name')
+            ->select('customers.customer_fullname as customer_name', 'customers.email', 'customers.phone_no', 'customers.alt_phone_no', 'customers.address', 'services.service_name as service_name', 'employees.employee_fullname as employee_name', 'sale_date', 'sale_time', 'total_price')
             ->get();
 
         return ["result" => $reports];
@@ -206,6 +245,22 @@ class AuthController extends Controller
         $sale->sale_time = $req->sale_time;
         $sale->payment_method = $req->payment_method;
         $sale->total_price = $req->total_price;
+
+        //chatgpt
+        // $sale->fill($req->only([
+        //     'admin_id',
+        //     'user_id',
+        //     'employee_id',
+        //     'customer_id',
+        //     'service_id',
+        //     'sale_date',
+        //     'sale_time',
+        //     'payment_method',
+        //     'total_price'
+        // ]));
+
+        //bard
+        // $sale->fill($req->all());
 
         $result = $sale->save();
         if ($result) {
