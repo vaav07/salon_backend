@@ -139,6 +139,30 @@ class AuthController extends Controller
         return response()->json(['message' => 'Resource updated successfully']);
     }
 
+    //Search
+    public function search(Request $request)
+    {
+        // Get the search query from the request
+        // $query = $request->query('q');
+        $searchTerm = $request->query('q');
+        $userId = $request->query('user_id');
+
+        // Perform the search query
+        // for searching single column
+        // $results = Customer::where('customer_fullname', 'like', "%$query%")->get();   
+
+        //multiple columns
+        $results = Customer::where(function ($searchQuery) use ($searchTerm, $userId) {
+            $searchQuery->where('customer_fullname', 'like', "%$searchTerm%")
+                ->orWhere('phone_no', 'like', "%$searchTerm%")
+                ->where('user_id', 'like', "%$userId%");
+        })->limit(8)->get();
+
+        // Return the search results
+        return ["users" => $results];
+        // return response()->json($results);
+    }
+
     public function getEmployee($id)
     {
         $getEmployee = Employee::where("user_id", $id)->get();
@@ -197,6 +221,14 @@ class AuthController extends Controller
         return ["result" => $getService];
     }
 
+    public function getServicesName()
+    {
+
+
+        $getService = Service::pluck('service_name');
+
+        return ["result" => $getService];
+    }
 
     public function addService(Request $req)
     {

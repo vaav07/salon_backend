@@ -37,6 +37,9 @@ Route::group([
     Route::get('getspecificCustomer/{id}', [AuthController::class, 'getSpecificCustomer']);
     Route::put('updatespecificCustomer/{id}', [AuthController::class, 'updateCustomer']);
 
+    //search Customer
+    Route::get('/search', [AuthController::class, 'search']);
+
     //employee
     Route::post('addemployee', [AuthController::class, 'addEmployee']);
     Route::get('getemployees/{id}', [AuthController::class, 'getEmployee']);
@@ -46,9 +49,11 @@ Route::group([
     //services
     Route::post('addservice', [AuthController::class, 'addService']);
     Route::get('getservices', [AuthController::class, 'getService']);
+    Route::get('getservicesName', [AuthController::class, 'getServicesName']);
 
     //sales
     Route::post('addsale', [AuthController::class, 'addSale']);
+
 
     //reports
     Route::get('getreports/{id}', [AuthController::class, 'allReports']);
