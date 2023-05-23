@@ -108,7 +108,7 @@ class AuthController extends Controller
         $customer = new Customer();
         $customer->admin_id = $req->admin_id;
         $customer->user_id = $req->user_id;
-        $customer->customer_fullname = $req->customer_fullname;
+        $customer->fullname = $req->fullname;
         $customer->email = $req->email;
         $customer->phone_no = $req->phone_no;
         $customer->alt_phone_no = $req->alt_phone_no;
@@ -153,7 +153,7 @@ class AuthController extends Controller
 
         //multiple columns
         $results = Customer::where(function ($searchQuery) use ($searchTerm, $userId) {
-            $searchQuery->where('customer_fullname', 'like', "%$searchTerm%")
+            $searchQuery->where('fullname', 'like', "%$searchTerm%")
                 ->orWhere('phone_no', 'like', "%$searchTerm%")
                 ->where('user_id', 'like', "%$userId%");
         })->limit(8)->get();
@@ -175,7 +175,7 @@ class AuthController extends Controller
         $employee = new Employee();
         $employee->admin_id = $req->admin_id;
         $employee->user_id = $req->user_id;
-        $employee->employee_fullname = $req->employee_fullname;
+        $employee->fullname = $req->fullname;
         $employee->email = $req->email;
         $employee->phone_no = $req->phone_no;
         $employee->alt_phone_no = $req->alt_phone_no;
@@ -259,7 +259,7 @@ class AuthController extends Controller
             ->join('customers', 'sales.customer_id', '=', 'customers.id')
             ->join('employees', 'sales.employee_id', '=', 'employees.id')
             ->join('services', 'sales.service_id', '=', 'services.id')
-            ->select('customers.customer_fullname as customer_name', 'customers.email', 'customers.phone_no', 'customers.alt_phone_no', 'customers.address', 'services.service_name as service_name', 'employees.employee_fullname as employee_name', 'sale_date', 'sale_time', 'total_price')
+            ->select('customers.fullname as customer_name', 'customers.email', 'customers.phone_no', 'customers.alt_phone_no', 'customers.address', 'services.service_name as service_name', 'employees.fullname as employee_name', 'sale_date', 'sale_time', 'total_price')
             ->get();
 
         return ["result" => $reports];

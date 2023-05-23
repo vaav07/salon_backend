@@ -16,17 +16,18 @@ class DatabaseSeeder extends Seeder
         // \App\Models\User::factory(10)->create();
 
 
-        // \App\Models\Admin::factory()->create([
-        //     'name' => 'Test Admin',
-        //     'username' => 'admin1',
-        //     'email' => 'admin@example.com',
-        //     'password' => Hash::make('123456')
-        // ]);
+        \App\Models\Admin::factory()->create([
+            'name' => 'Test Admin',
+            'username' => 'admin1',
+            'email' => 'admin@example.com',
+            'password' => Hash::make('123456')
+        ]);
+
         \App\Models\User::factory()->create([
-            'name' => 'Test User2',
+            'name' => 'Test User',
             'admin_id' => 1,
-            'username' => "user2",
-            'email' => 'test2@example.com',
+            'username' => "user",
+            'email' => 'test@example.com',
             'password' => Hash::make('123456')
         ]);
         // \App\Models\SubAdmin::factory()->create([

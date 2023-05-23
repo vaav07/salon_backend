@@ -11,27 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('sales', function (Blueprint $table) {
+        Schema::create('services', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('admin_id')->nullable();
             $table->foreign('admin_id')->references('id')->on('admins');
 
             // Add user_id column
-            $table->unsignedBigInteger('user_id')->nullable();
-            $table->foreign('user_id')->references('id')->on('users');
-
-            //need to make it nullable if client doesn't want it
-            $table->unsignedBigInteger('employee_id')->nullable();
-            $table->foreign('employee_id')->references('id')->on('employees');
-
-            $table->unsignedBigInteger('customer_id');
-            $table->foreign('customer_id')->references('id')->on('customers');
-
-            $table->string('services', 100);
-            $table->date('sale_date')->nullable();
-            $table->time('sale_time')->nullable();
-            $table->string('payment_method')->nullable();
-            $table->decimal('total_price', 8, 2);
+            // $table->unsignedBigInteger('user_id')->nullable();
+            // $table->foreign('user_id')->references('id')->on('users');
+            $table->string('service_name');
+            $table->text('description')->nullable();
+            $table->decimal('price', 8, 2);
             $table->timestamps();
         });
     }
@@ -41,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('sales');
+        Schema::dropIfExists('services');
     }
 };
