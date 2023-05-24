@@ -27,7 +27,7 @@ return new class extends Migration
             $table->unsignedBigInteger('customer_id');
             $table->foreign('customer_id')->references('id')->on('customers');
 
-            $table->string('services', 100);
+
             $table->date('sale_date')->nullable();
             $table->time('sale_time')->nullable();
             $table->string('payment_method')->nullable();

@@ -233,11 +233,7 @@ class AuthController extends Controller
     public function addService(Request $req)
     {
         $service = new Service();
-        // $service->admin_id = $req->admin_id;
-        // $service->user_id = $req->user_id;
-        // $service->service_name = $req->service_name;
-        // $service->description = $req->description;
-        // $service->price = $req->price;
+
         $service->fill($req->all());
 
         $result = $service->save();
@@ -251,55 +247,42 @@ class AuthController extends Controller
 
     public function allReports($id)
     {
-        // $getSales = Sale::where("user_id", $id)->get();
 
-        // return ["result" => $getSales];
-        $reports = DB::table('sales')
-            ->where('sales.user_id', '=', $id)
-            ->join('customers', 'sales.customer_id', '=', 'customers.id')
-            ->join('employees', 'sales.employee_id', '=', 'employees.id')
-            ->join('services', 'sales.service_id', '=', 'services.id')
-            ->select('customers.fullname as customer_name', 'customers.email', 'customers.phone_no', 'customers.alt_phone_no', 'customers.address', 'services.service_name as service_name', 'employees.fullname as employee_name', 'sale_date', 'sale_time', 'total_price')
+        $invoices = Sale::with(['customer', 'services', 'employee'])
+            ->where('user_id', $id)
             ->get();
 
-        return ["result" => $reports];
+
+        $formattedInvoices = $invoices->map(function ($invoice) {
+            return [
+                'customer_name' => $invoice->customer->fullname,
+                'employee_name' => $invoice->employee->fullname,
+                'services' => $invoice->services->pluck('service_name'),
+                'invoice_date' => $invoice->sale_date,
+                'invoice_time' => $invoice->sale_time,
+                'total_amount' => $invoice->total_price,
+            ];
+        });
+
+        return response()->json($formattedInvoices);
     }
 
     public function addSale(Request $req)
     {
-        $sale = new Sale();
-        $sale->admin_id = $req->admin_id;
-        $sale->user_id = $req->user_id;
-        $sale->employee_id = $req->employee_id;
-        $sale->customer_id = $req->customer_id;
-        $sale->service_id = $req->service_id;
-        $sale->sale_date = $req->sale_date;
-        $sale->sale_time = $req->sale_time;
-        $sale->payment_method = $req->payment_method;
-        $sale->total_price = $req->total_price;
 
-        //chatgpt
-        // $sale->fill($req->only([
-        //     'admin_id',
-        //     'user_id',
-        //     'employee_id',
-        //     'customer_id',
-        //     'service_id',
-        //     'sale_date',
-        //     'sale_time',
-        //     'payment_method',
-        //     'total_price'
-        // ]));
+        $invoice = Sale::create([
+            'admin_id' => $req->admin_id,
+            'user_id' => $req->user_id,
+            'employee_id' => $req->employee_id,
+            'customer_id' => $req->customer_id,
+            'sale_date' => $req->sale_date,
+            'sale_time' => $req->sale_time,
+            'payment_method' => $req->payment_method,
+            'total_price' => $req->total_price,
+        ]);
 
-        //bard
-        // $sale->fill($req->all());
 
-        $result = $sale->save();
-        if ($result) {
-
-            return ["Result" => "Data has been saved"];
-        } else {
-            return ["Result" => "Operation failed"];
-        }
+        $invoice->services()->attach($req->services);
+        return ["Succeess"];
     }
 }
