@@ -257,10 +257,10 @@ class AuthController extends Controller
             return [
                 'customer_name' => $invoice->customer->fullname,
                 'employee_name' => $invoice->employee->fullname,
-                'services' => $invoice->services->pluck('service_name'),
+                'services' => $invoice->services->pluck('service_name')->implode(", "),
                 'invoice_date' => $invoice->sale_date,
                 'invoice_time' => $invoice->sale_time,
-                'total_amount' => $invoice->total_price,
+                'total_amount' => floatval($invoice->total_price),
             ];
         });
 
