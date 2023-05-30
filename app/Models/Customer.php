@@ -23,4 +23,25 @@ class Customer extends Model
         "gender"
     ];
     protected $table = 'customers';
+
+    // public function latestSale()
+    // {
+    //     return $this->hasOne(Sale::class)->latest('sale_date');
+    // }
+
+    public function scopeInactive($query)
+    {
+        $oneMonthAgo = now()->subMonth(); // Get the date/time 1 month ago
+
+        return $query->whereDoesntHave('latestSale', function ($query) use ($oneMonthAgo) {
+            $query->where('sale_date', '>=', $oneMonthAgo);
+        });
+    }
+
+    public function latestSale()
+    {
+        return $this->hasOne(Sale::class)
+            ->select('customer_id', 'sale_date')
+            ->latest('sale_date');
+    }
 }

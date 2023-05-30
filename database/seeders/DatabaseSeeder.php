@@ -30,6 +30,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
             'password' => Hash::make('123456')
         ]);
+
         // \App\Models\SubAdmin::factory()->create([
         //     'name' => 'Test SubAdmin',
         //     'email' => 'subAdmin@example.com',

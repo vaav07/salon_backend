@@ -57,6 +57,7 @@ Route::group([
 
     //reports
     Route::get('getreports/{id}', [AuthController::class, 'allReports']);
+    Route::get('lastvisited/{id}', [AuthController::class, 'lastVisited']);
 });
 
 

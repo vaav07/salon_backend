@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Query\Builder;
 
 class AuthController extends Controller
 {
@@ -89,11 +90,19 @@ class AuthController extends Controller
         ]);
     }
 
+
+
     public function getCustomer($id)
     {
-        $getCustomer = Customer::where("user_id", $id)->get();
+        $customers = Customer::where('user_id', $id)
+            // ->with(['latestSale' => function ($query) {
+            //     $query
+            //         ->orderBy('sale_date', 'desc')
+            //         ->limit(1);
+            // }])
+            ->get();
 
-        return ["result" => $getCustomer];
+        return response()->json($customers);
     }
 
     public function getSpecificCustomer($id)
@@ -284,5 +293,32 @@ class AuthController extends Controller
 
         $invoice->services()->attach($req->services);
         return ["Succeess"];
+    }
+
+
+    public function lastVisited($id)
+    {
+        // $oneMonthAgo = now()->subMonth(); // Get the date/time 1 month ago
+
+        // $inactiveCustomers = Customer::whereDoesntHave('latestSale', function ($query) use ($oneMonthAgo) {
+        //     $query->where('sale_date', '>=', $oneMonthAgo);
+        // })->get();
+
+
+        $inactiveCustomers = Customer::where('user_id', $id)
+            ->inactive()
+            ->with(['latestSale' => function ($query) {
+                $query->select('customer_id', 'sale_date');
+            }])
+            ->get()
+            ->map(function ($customer) {
+                return [
+                    'fullname' => $customer->fullname,
+                    'phone_no' => $customer->phone_no,
+                    'last_visited' => $customer->latestSale ? $customer->latestSale->sale_date : null
+                ];
+            });
+
+        return response()->json($inactiveCustomers);
     }
 }
