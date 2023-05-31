@@ -254,12 +254,23 @@ class AuthController extends Controller
         }
     }
 
-    public function allReports($id)
+    public function allReports($id, Request $request)
     {
+        $startDate = $request->input('startDate');
+        $endDate = $request->input('endDate');
+
+        // echo "satrtDate" . $startDate;
+        // echo "endDate" . $endDate;
+
 
         $invoices = Sale::with(['customer', 'services', 'employee'])
-            ->where('user_id', $id)
-            ->get();
+            ->where('user_id', $id);
+
+        if ($startDate && $endDate) {
+            $invoices->whereBetween('sale_date', [$startDate, $endDate]);
+        }
+
+        $invoices = $invoices->get();
 
 
         $formattedInvoices = $invoices->map(function ($invoice) {
