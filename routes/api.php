@@ -37,6 +37,9 @@ Route::group([
     Route::get('getspecificCustomer/{id}', [AuthController::class, 'getSpecificCustomer']);
     Route::put('updatespecificCustomer/{id}', [AuthController::class, 'updateCustomer']);
 
+    // stats
+    Route::get('statistics/{id}', [AuthController::class, 'countStatistics']);
+
     //search Customer
     Route::get('/search', [AuthController::class, 'search']);
 
@@ -57,7 +60,8 @@ Route::group([
 
     //reports
     Route::get('getreports/{id}', [AuthController::class, 'allReports']);
-    Route::get('lastvisited/{id}', [AuthController::class, 'lastVisited']);
+    // Route::get('lastvisited/{id}', [AuthController::class, 'lastVisited']);
+    Route::get('inactiveCustomers/{id}/{duration}', [AuthController::class, 'inactiveCustomers']);
 });
 
 

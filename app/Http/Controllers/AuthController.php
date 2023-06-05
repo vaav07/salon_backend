@@ -90,6 +90,24 @@ class AuthController extends Controller
         ]);
     }
 
+    public function countStatistics($id)
+    {
+
+
+        $employeeCount = Employee::where('user_id', $id)->count();
+        $customerCount = Customer::where('user_id', $id)->count();
+        $serviceCount = Service::count();
+        $saleCount = Sale::where('user_id', $id)->count();
+
+        $statistics = [
+            'employee_count' => $employeeCount,
+            'customer_count' => $customerCount,
+            'service_count' => $serviceCount,
+            'sale_count' => $saleCount,
+        ];
+
+        return response()->json($statistics);
+    }
 
 
     public function getCustomer($id)
@@ -306,21 +324,36 @@ class AuthController extends Controller
         return ["Succeess"];
     }
 
+    //not using this
+    // public function lastVisited($id)
+    // {
+    //     $inactiveCustomers = Customer::where('user_id', $id)
+    //         ->inactive()
+    //         ->with(['latestSale' => function ($query) {
+    //             $query->select('customer_id', 'sale_date');
+    //         }])
+    //         ->get()
+    //         ->map(function ($customer) {
+    //             return [
+    //                 'fullname' => $customer->fullname,
+    //                 'phone_no' => $customer->phone_no,
+    //                 'last_visited' => $customer->latestSale ? $customer->latestSale->sale_date : null
+    //             ];
+    //         });
 
-    public function lastVisited($id)
+    //     return response()->json($inactiveCustomers);
+    // }
+
+    public function inactiveCustomers($id, $duration)
     {
-        // $oneMonthAgo = now()->subMonth(); // Get the date/time 1 month ago
-
-        // $inactiveCustomers = Customer::whereDoesntHave('latestSale', function ($query) use ($oneMonthAgo) {
-        //     $query->where('sale_date', '>=', $oneMonthAgo);
-        // })->get();
-
+        $cutOffDate = now()->subMonths($duration); // Get the date/time based on the month cutoff
 
         $inactiveCustomers = Customer::where('user_id', $id)
             ->inactive()
-            ->with(['latestSale' => function ($query) {
-                $query->select('customer_id', 'sale_date');
-            }])
+            ->whereDoesntHave('latestSale', function ($query) use ($cutOffDate) {
+                $query->where('sale_date', '>=', $cutOffDate);
+            })
+            // ->select('fullname', 'phone_no', 'sale_date')
             ->get()
             ->map(function ($customer) {
                 return [
