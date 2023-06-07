@@ -62,6 +62,7 @@ Route::group([
     Route::get('getreports/{id}', [AuthController::class, 'allReports']);
     // Route::get('lastvisited/{id}', [AuthController::class, 'lastVisited']);
     Route::get('inactiveCustomers/{id}/{duration}', [AuthController::class, 'inactiveCustomers']);
+    Route::get('customersvisits/{id}', [AuthController::class, 'customerVisitsInMonth']);
 });
 
 

@@ -44,4 +44,9 @@ class Customer extends Model
             ->select('customer_id', 'sale_date')
             ->latest('sale_date');
     }
+
+    public function sales()
+    {
+        return $this->hasMany(Sale::class, 'customer_id');
+    }
 }

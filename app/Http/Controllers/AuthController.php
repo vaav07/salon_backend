@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Query\Builder;
+use Carbon\Carbon;
 
 class AuthController extends Controller
 {
@@ -85,7 +86,7 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
-            'expires_in' => auth()->factory()->getTTL() * 60, //1 hour  1440 = 1 day
+            'expires_in' => auth()->factory()->getTTL() * 1440, //1 hour = 60  1440 = 1 day
             'user' => auth()->user()
         ]);
     }
@@ -99,11 +100,20 @@ class AuthController extends Controller
         $serviceCount = Service::count();
         $saleCount = Sale::where('user_id', $id)->count();
 
+        $overallSalesAmount = Sale::where('user_id', $id)->sum('total_price');
+        $cashSalesAmount = Sale::where('user_id', $id)->where('payment_method', 'cash')->sum('total_price');
+        $upiSalesAmount = Sale::where('user_id', $id)->where('payment_method', 'upi')->sum('total_price');
+        $cardSalesAmount = Sale::where('user_id', $id)->where('payment_method', 'card')->sum('total_price');
+
         $statistics = [
             'employee_count' => $employeeCount,
             'customer_count' => $customerCount,
             'service_count' => $serviceCount,
             'sale_count' => $saleCount,
+            'overallSalesAmount' => $overallSalesAmount,
+            'cashSalesAmount' => $cashSalesAmount,
+            'upiSalesAmount' => $upiSalesAmount,
+            'cardSalesAmount' => $cardSalesAmount,
         ];
 
         return response()->json($statistics);
@@ -148,7 +158,7 @@ class AuthController extends Controller
         $result = $customer->save();
         if ($result) {
 
-            return ["Result" => "Data has been saved"];
+            return ["Result" => "Data has been saved", "Customer_ID" => $customer->id];
         } else {
             return ["Result" => "Operation failed"];
         }
@@ -364,5 +374,30 @@ class AuthController extends Controller
             });
 
         return response()->json($inactiveCustomers);
+    }
+
+    public function customerVisitsInMonth($id)
+    {
+
+
+        $startDate = null;
+        $endDate = null;
+
+        // Check if the "month" query parameter is provided
+        if (request()->has('month')) {
+            $startDate = Carbon::parse(request('month'))->startOfMonth();
+            $endDate = Carbon::parse(request('month'))->endOfMonth();
+        }
+
+        $customerVisits = Customer::select('fullname')
+            ->withCount(['sales' => function ($query) use ($startDate, $endDate) {
+                if ($startDate && $endDate) {
+                    $query->whereBetween('sale_date', [$startDate, $endDate]);
+                }
+            }])
+            ->where('user_id', $id)
+            ->get();
+
+        return response()->json($customerVisits);
     }
 }
