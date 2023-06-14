@@ -17,18 +17,22 @@ use App\Http\Controllers\SubAdminController;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
+// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+//     return $request->user();
+// });
+
+
+
 
 // USER
 Route::post('login', [AuthController::class, 'login']);
-Route::group([
-    'middleware' => 'api',
-    // 'prefix' => 'auth'
-], function ($router) {
+Route::post('register', [AuthController::class, 'register']);
+Route::post('refresh', [AuthController::class, 'refresh']);
+
+
+Route::middleware('auth:api')->group(function () {
+
     Route::post('logout', [AuthController::class, 'logout']);
-    Route::post('refresh', [AuthController::class, 'refresh']);
     Route::post('me', [AuthController::class, 'me']);
 
     //customer
@@ -68,14 +72,23 @@ Route::group([
 
 //ADMIN
 Route::post('admin/login', [AdminController::class, 'login']);
+Route::post('admin/refresh',  [AdminController::class, 'refresh']);
 
-Route::group([
-    'middleware' => 'admin',
-    'prefix' => 'admin'
-], function ($router) {
+Route::middleware('auth:admin')->prefix('admin')->group(function () {
+
+    Route::post('user/register', [AuthController::class, 'register']);
+
     Route::post('logout', [AdminController::class, 'logout']);
-    Route::post('refresh',  [AdminController::class, 'refresh']);
     Route::post('me',  [AdminController::class, 'me']);
+
+    //delete service
+    Route::delete('{adminId}/services/{serviceId}', [AdminController::class, 'deleteService']);
+
+    Route::get('{adminId}/daily-sales', [AdminController::class, 'dailySales']);
+    Route::get('{adminId}/past-month-sales', [AdminController::class, 'pastMonthSales']);
+    Route::get('{adminId}/select-sales-date/{date}', [AdminController::class, 'dailySalesByDate']);
+    Route::get('employees/{adminId}', [AdminController::class, 'getEmployees']);
+    Route::get('services/{adminId}', [AdminController::class, 'getServices']);
 });
 
 //SubAdmin -> Extra Login Route

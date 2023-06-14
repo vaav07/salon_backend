@@ -14,12 +14,12 @@ class Customer extends Model
         "fullname",
         "email",
         "phone_no",
-        "alt_phone_no",
-        "address",
-        "state",
-        "city",
-        "pincode",
-        "dob",
+        // "alt_phone_no",
+        // "address",
+        // "state",
+        // "city",
+        // "pincode",
+        // "dob",
         "gender"
     ];
     protected $table = 'customers';

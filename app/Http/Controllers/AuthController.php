@@ -2,17 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use App\Models\Sale;
 use App\Models\User;
 use App\Models\Service;
 use App\Models\Customer;
 use App\Models\Employee;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+
 use Illuminate\Database\Query\Builder;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
@@ -23,7 +27,7 @@ class AuthController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login']]);
+        $this->middleware('auth:api', ['except' => ['login', 'refresh', 'register']]);
     }
 
     /**
@@ -33,7 +37,7 @@ class AuthController extends Controller
      */
     public function login()
     {
-        $credentials = request(['email', 'password']);
+        $credentials = request(['username', 'password']);
 
         if (!$token = auth()->attempt($credentials)) {
             return response()->json(['error' => 'Unauthorized'], 401);
@@ -86,8 +90,35 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
-            'expires_in' => auth()->factory()->getTTL() * 1440, //1 hour = 60  1440 = 1 day
+            'expires_in' => auth()->factory()->getTTL() * 60, //1 hour = 60  1440 = 1 day
             'user' => auth()->user()
+        ]);
+    }
+
+    public function register(Request $req)
+    {
+        $validator = Validator::make($req->all(), [
+            'admin_id' => 'required',
+            'name' => 'required|string|min:2|max:100',
+            // 'email' => 'string|email|max:100|unique:users',
+            'password' => 'required|string|min:5'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
+        }
+
+        $user = User::create([
+            'admin_id' => $req->admin_id,
+            'username' => $req->username,
+            'name' => $req->name,
+            'email' => $req->email,
+            'password' => Hash::make($req->password),
+        ]);
+
+        return response()->json([
+            'message' => 'user register successfully',
+            'user' => $user
         ]);
     }
 
@@ -100,20 +131,49 @@ class AuthController extends Controller
         $serviceCount = Service::count();
         $saleCount = Sale::where('user_id', $id)->count();
 
-        $overallSalesAmount = Sale::where('user_id', $id)->sum('total_price');
-        $cashSalesAmount = Sale::where('user_id', $id)->where('payment_method', 'cash')->sum('total_price');
-        $upiSalesAmount = Sale::where('user_id', $id)->where('payment_method', 'upi')->sum('total_price');
-        $cardSalesAmount = Sale::where('user_id', $id)->where('payment_method', 'card')->sum('total_price');
+        // $overallSalesAmount = Sale::where('user_id', $id)->sum('total_price');
+        // $cashSalesAmount = Sale::where('user_id', $id)->where('payment_method', 'cash')->sum('total_price');
+        // $upiSalesAmount = Sale::where('user_id', $id)->where('payment_method', 'upi')->sum('total_price');
+        // $cardSalesAmount = Sale::where('user_id', $id)->where('payment_method', 'card')->sum('total_price');
+
+        $today = Carbon::today();
+        $todaysSales = Sale::where('user_id', $id)
+            ->whereDate('sale_date', $today)
+            // ->sum('total_price')
+            ->get();
+        $todaysSalesCount = $todaysSales->count();
+        $todaysOverallSalesAmount = $todaysSales->sum('total_price');
+        $todaysCashSalesAmount = $todaysSales->where('payment_method', 'cash')->sum('total_price');
+        $todaysCardSalesAmount = $todaysSales->where('payment_method', 'card')->sum('total_price');
+        $todaysUpiSalesAmount = $todaysSales->where('payment_method', 'upi')->sum('total_price');
+
+        $employeeSalesAmounts = $todaysSales->groupBy('employee_id')
+            ->map(function ($sales, $employeeId) {
+                $employee = Employee::find($employeeId);
+                $employeeName = $employee ? $employee->fullname : 'Unknown Employee';
+                $salesAmount = $sales->sum('total_price');
+                // return [$employeeName => $salesAmount];
+                return  ['employee_name' => Str::title($employeeName), 'salesAmount' => $salesAmount];
+            })
+            ->values()
+            ->toArray();
+
 
         $statistics = [
             'employee_count' => $employeeCount,
             'customer_count' => $customerCount,
             'service_count' => $serviceCount,
             'sale_count' => $saleCount,
-            'overallSalesAmount' => $overallSalesAmount,
-            'cashSalesAmount' => $cashSalesAmount,
-            'upiSalesAmount' => $upiSalesAmount,
-            'cardSalesAmount' => $cardSalesAmount,
+            // 'overallSalesAmount' => $overallSalesAmount,
+            // 'cashSalesAmount' => $cashSalesAmount,
+            // 'upiSalesAmount' => $upiSalesAmount,
+            // 'cardSalesAmount' => $cardSalesAmount,
+            'todays_sale_count' => $todaysSalesCount,
+            'todaysOverallSalesAmount' => $todaysOverallSalesAmount,
+            'todaysCashSalesAmount' => $todaysCashSalesAmount,
+            'todaysCardSalesAmount' => $todaysCardSalesAmount,
+            'todaysUpiSalesAmount' => $todaysUpiSalesAmount,
+            'employeeSalesAmounts' => $employeeSalesAmounts,
         ];
 
         return response()->json($statistics);
@@ -148,12 +208,12 @@ class AuthController extends Controller
         $customer->fullname = $req->fullname;
         $customer->email = $req->email;
         $customer->phone_no = $req->phone_no;
-        $customer->alt_phone_no = $req->alt_phone_no;
-        $customer->address = $req->address;
-        $customer->state = $req->state;
-        $customer->city = $req->city;
-        $customer->pincode = $req->pincode;
-        $customer->dob = $req->dob;
+        // $customer->alt_phone_no = $req->alt_phone_no;
+        // $customer->address = $req->address;
+        // $customer->state = $req->state;
+        // $customer->city = $req->city;
+        // $customer->pincode = $req->pincode;
+        // $customer->dob = $req->dob;
         $customer->gender = $req->gender;
         $result = $customer->save();
         if ($result) {
@@ -215,12 +275,12 @@ class AuthController extends Controller
         $employee->fullname = $req->fullname;
         $employee->email = $req->email;
         $employee->phone_no = $req->phone_no;
-        $employee->alt_phone_no = $req->alt_phone_no;
-        $employee->address = $req->address;
-        $employee->state = $req->state;
-        $employee->city = $req->city;
-        $employee->pincode = $req->pincode;
-        $employee->dob = $req->dob;
+        // $employee->alt_phone_no = $req->alt_phone_no;
+        // $employee->address = $req->address;
+        // $employee->state = $req->state;
+        // $employee->city = $req->city;
+        // $employee->pincode = $req->pincode;
+        // $employee->dob = $req->dob;
         $employee->gender = $req->gender;
         $employee->date_of_joining = $req->date_of_joining;
         $result = $employee->save();
@@ -378,8 +438,6 @@ class AuthController extends Controller
 
     public function customerVisitsInMonth($id)
     {
-
-
         $startDate = null;
         $endDate = null;
 

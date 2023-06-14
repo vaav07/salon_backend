@@ -7,6 +7,15 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
+use Carbon\Carbon;
+use App\Models\Sale;
+use App\Models\User;
+use App\Models\Service;
+use App\Models\Customer;
+use App\Models\Employee;
+use Illuminate\Support\Str;
+
+
 class AdminController extends Controller
 {
     //
@@ -27,7 +36,7 @@ class AdminController extends Controller
      */
     public function login()
     {
-        $credentials = request(['email', 'password']);
+        $credentials = request(['username', 'password']);
 
         if (!$token = auth('admin')->attempt($credentials)) {
             return response()->json(['error' => 'Unauthorized'], 401);
@@ -86,5 +95,170 @@ class AdminController extends Controller
             'expires_in' => auth('admin')->factory()->getTTL() * 60,
             'user' => auth('admin')->user()
         ]);
+    }
+
+    public function deleteService($adminId, $serviceId)
+    {
+        // Check if the admin exists
+        $admin = Admin::find($adminId);
+        if (!$admin) {
+            return response()->json(['message' => 'Admin not found'], 404);
+        }
+
+        // Check if the service exists for the admin
+        $service = Service::where('admin_id', $adminId)->find($serviceId);
+        if (!$service) {
+            return response()->json(['message' => 'Service not found'], 404);
+        }
+
+        // Delete the service
+        $service->delete();
+
+        return response()->json(['message' => 'Service deleted successfully']);
+    }
+
+    public function dailySales($adminId)
+    {
+
+        $admin = Admin::find($adminId);
+        if (!$admin) {
+            return response()->json(['message' => 'Admin not found'], 404);
+        }
+
+        $today = Carbon::today();
+        $dailySales = Sale::select('user_id', Sale::raw('SUM(total_price) as total_sales'))
+            ->whereDate('sale_date', $today)
+            ->groupBy('user_id')
+            ->get();
+
+        $users = User::whereIn('id', $dailySales->pluck('user_id'))->get();
+
+        $result = [];
+        foreach ($users as $user) {
+            $totalSales = $dailySales->where('user_id', $user->id)->first()->total_sales;
+            $result[] = [
+                'user_id' => $user->id,
+                'username' => $user->username,
+                'total_sales' => $totalSales,
+            ];
+        }
+
+        return response()->json($result);
+    }
+
+    public function dailySalesByDate($adminId, $date = null)
+    {
+        $admin = Admin::find($adminId);
+        if (!$admin) {
+            return response()->json(['message' => 'Admin not found'], 404);
+        }
+
+        if ($date === null) {
+            $date = Carbon::yesterday()->toDateString();
+        }
+
+        $dailySales = Sale::select('user_id', Sale::raw('SUM(total_price) as total_sales'))
+            ->whereDate('sale_date', $date)
+            ->groupBy('user_id')
+            ->get();
+
+        $users = User::whereIn('id', $dailySales->pluck('user_id'))->get();
+
+        $result = [];
+        foreach ($users as $user) {
+            $totalSales = $dailySales->where('user_id', $user->id)->first()->total_sales;
+
+            $cashSales = Sale::where('user_id', $user->id)
+                ->whereDate('sale_date', $date)
+                ->where('payment_method', 'Cash')
+                ->sum('total_price');
+
+            $cardSales = Sale::where('user_id', $user->id)
+                ->whereDate('sale_date', $date)
+                ->where('payment_method', 'Card')
+                ->sum('total_price');
+
+            $upiSales = Sale::where('user_id', $user->id)
+                ->whereDate('sale_date', $date)
+                ->where('payment_method', 'UPI')
+                ->sum('total_price');
+
+            $result[] = [
+                'user_id' => $user->id,
+                'username' => $user->username,
+                'total_sales' => $totalSales,
+                'cash_sales' => $cashSales,
+                'card_sales' => $cardSales,
+                'upi_sales' => $upiSales,
+            ];
+        }
+
+        return response()->json($result);
+    }
+
+    public function pastMonthSales($adminId)
+    {
+        $admin = Admin::find($adminId);
+        if (!$admin) {
+            return response()->json(['message' => 'Admin not found'], 404);
+        }
+
+        $currentDate = Carbon::now();
+        $currentMonth = $currentDate->month;
+
+        // If current month is January, the previous month will be December of the previous year
+        if ($currentMonth == 1) {
+            $prevMonthYear = $currentDate->year - 1;
+            $prevMonth = 12;
+        } else {
+            $prevMonthYear = $currentDate->year;
+            $prevMonth = $currentMonth - 1;
+        }
+
+        $startDate = Carbon::create($prevMonthYear, $prevMonth, 1)->startOfMonth();
+        $endDate = Carbon::create($prevMonthYear, $prevMonth, 1)->endOfMonth();
+
+        $sales = Sale::select('user_id', Sale::raw('SUM(total_price) as total_sales'))
+            ->whereBetween('sale_date', [$startDate, $endDate])
+            ->groupBy('user_id')
+            ->get();
+
+        $users = User::whereIn('id', $sales->pluck('user_id'))->get();
+
+        $result = [];
+        foreach ($users as $user) {
+            $totalSales = $sales->where('user_id', $user->id)->first()->total_sales;
+            $result[] = [
+                'user_id' => $user->id,
+                'username' => $user->username,
+                'total_sales' => $totalSales,
+            ];
+        }
+
+        return response()->json($result);
+    }
+
+    public function getEmployees($adminId)
+    {
+        $admin = Admin::find($adminId);
+        if (!$admin) {
+            return response()->json(['message' => 'Admin not found'], 404);
+        }
+
+        $employees = $admin->employees;
+
+        return response()->json($employees);
+    }
+
+    public function getServices($adminId)
+    {
+        $admin = Admin::find($adminId);
+        if (!$admin) {
+            return response()->json(['message' => 'Admin not found'], 404);
+        }
+
+        $services = $admin->services;
+
+        return response()->json($services);
     }
 }

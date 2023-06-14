@@ -13,6 +13,9 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+//Clear route cache
+require __DIR__ . '/cache.php';
+
 Route::get('/', function () {
     return view('welcome');
 });

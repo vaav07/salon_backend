@@ -71,15 +71,18 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => App\Models\User::class,
+            'username' => 'username',
         ],
 
         'admins' => [
             'driver' => 'eloquent',
             'model' => App\Models\Admin::class,
+            'username' => 'username',
         ],
         'subAdmins' => [
             'driver' => 'eloquent',
             'model' => App\Models\SubAdmin::class,
+            'username' => 'username',
         ],
     ],
 
