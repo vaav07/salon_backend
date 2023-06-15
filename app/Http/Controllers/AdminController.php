@@ -261,4 +261,36 @@ class AdminController extends Controller
 
         return response()->json($services);
     }
+
+    public function userStats($adminId)
+    {
+        $admin = Admin::find($adminId);
+        if (!$admin) {
+            return response()->json(['message' => 'Admin not found'], 404);
+        }
+
+        $users = User::whereHas('admin', function ($query) use ($adminId) {
+            $query->where('id', $adminId);
+        })
+            ->with('customer', 'employee')
+            ->get();
+
+        $stats = [];
+
+        foreach ($users as $user) {
+            $customerCount = $user->customer ? 1 : 0;
+            $employeeCount = $user->employee ? 1 : 0;
+            $salesCount = Sale::where('user_id', $user->id)->count();
+
+            $stats[] = [
+                'user_id' => $user->id,
+                'username' => $user->username,
+                'customer_count' => $customerCount,
+                'employee_count' => $employeeCount,
+                'sales_count' => $salesCount,
+            ];
+        }
+
+        return response()->json($stats);
+    }
 }

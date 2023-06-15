@@ -24,4 +24,10 @@ class Employee extends Model
         "date_of_joining"
     ];
     protected $table = 'employees';
+
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

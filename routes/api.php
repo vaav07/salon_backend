@@ -87,6 +87,7 @@ Route::middleware('auth:admin')->prefix('admin')->group(function () {
     Route::get('{adminId}/daily-sales', [AdminController::class, 'dailySales']);
     Route::get('{adminId}/past-month-sales', [AdminController::class, 'pastMonthSales']);
     Route::get('{adminId}/select-sales-date/{date}', [AdminController::class, 'dailySalesByDate']);
+    Route::get('{adminId}/user-stats', [AdminController::class, 'userStats']);
     Route::get('employees/{adminId}', [AdminController::class, 'getEmployees']);
     Route::get('services/{adminId}', [AdminController::class, 'getServices']);
 });
