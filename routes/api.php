@@ -90,6 +90,9 @@ Route::middleware('auth:admin')->prefix('admin')->group(function () {
     Route::get('{adminId}/user-stats', [AdminController::class, 'userStats']);
     Route::get('employees/{adminId}', [AdminController::class, 'getEmployees']);
     Route::get('services/{adminId}', [AdminController::class, 'getServices']);
+
+    //change user password
+    Route::put('{adminId}/{userId}/change-password', [AdminController::class, 'changeUserPassword']);
 });
 
 //SubAdmin -> Extra Login Route

@@ -2,18 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Admin;
-use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-
 use Carbon\Carbon;
 use App\Models\Sale;
 use App\Models\User;
+use App\Models\Admin;
+
 use App\Models\Service;
 use App\Models\Customer;
 use App\Models\Employee;
 use Illuminate\Support\Str;
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 
 class AdminController extends Controller
@@ -262,6 +263,37 @@ class AdminController extends Controller
         return response()->json($services);
     }
 
+    // public function userStats($adminId)
+    // {
+    //     $admin = Admin::find($adminId);
+    //     if (!$admin) {
+    //         return response()->json(['message' => 'Admin not found'], 404);
+    //     }
+
+    //     $users = User::whereHas('admin', function ($query) use ($adminId) {
+    //         $query->where('id', $adminId);
+    //     })
+    //         ->with('customer', 'employee')
+    //         ->get();
+
+    //     $stats = [];
+
+    //     foreach ($users as $user) {
+    //         $customerCount = $user->customer ? 1 : 0;
+    //         $employeeCount = $user->employee ? 1 : 0;
+    //         $salesCount = Sale::where('user_id', $user->id)->count();
+
+    //         $stats[] = [
+    //             'user_id' => $user->id,
+    //             'username' => $user->username,
+    //             'customer_count' => $customerCount,
+    //             'employee_count' => $employeeCount,
+    //             'sales_count' => $salesCount,
+    //         ];
+    //     }
+
+    //     return response()->json($stats);
+    // }
     public function userStats($adminId)
     {
         $admin = Admin::find($adminId);
@@ -269,17 +301,15 @@ class AdminController extends Controller
             return response()->json(['message' => 'Admin not found'], 404);
         }
 
-        $users = User::whereHas('admin', function ($query) use ($adminId) {
-            $query->where('id', $adminId);
-        })
-            ->with('customer', 'employee')
+        $users = User::where('admin_id', $adminId)
+            ->with(['customers', 'employees'])
             ->get();
 
         $stats = [];
 
         foreach ($users as $user) {
-            $customerCount = $user->customer ? 1 : 0;
-            $employeeCount = $user->employee ? 1 : 0;
+            $customerCount = $user->customers->count();
+            $employeeCount = $user->employees->count();
             $salesCount = Sale::where('user_id', $user->id)->count();
 
             $stats[] = [
@@ -292,5 +322,39 @@ class AdminController extends Controller
         }
 
         return response()->json($stats);
+    }
+
+    public function changeUserPassword(Request $request, $adminId, $userId)
+    {
+        // Validate the request data
+        $request->validate([
+            'username' => 'sometimes|required',
+            'password' => 'required|min:4',
+        ]);
+
+        // Find the admin
+        $admin = Admin::find($adminId);
+
+        if (!$admin) {
+            return response()->json(['message' => 'Admin not found'], 404);
+        }
+
+        // Find the user under the admin
+        $user = $admin->users()->find($userId);
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        if ($request->has('username')) {
+            $user->username = $request->username;
+        }
+
+
+        // Change the user's password
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        return response()->json(['message' => 'Username and Password changed successfully'], 200);
     }
 }
