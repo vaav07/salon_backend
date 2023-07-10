@@ -312,11 +312,20 @@ class AuthController extends Controller
         return response()->json(['message' => 'Resource updated successfully']);
     }
 
-    public function getService()
-    {
-        $getService = Service::all();
+    // public function getService()
+    // {
+    //     $getService = Service::all();
 
-        return ["result" => $getService];
+    //     return ["result" => $getService];
+    // }
+
+
+
+    public function getService($id)
+    {
+        $services = Service::where('user_id', $id)->get();
+
+        return ["result" => $services];
     }
 
     public function getServicesName()

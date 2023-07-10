@@ -55,7 +55,7 @@ Route::middleware('auth:api')->group(function () {
 
     //services
     Route::post('addservice', [AuthController::class, 'addService']);
-    Route::get('getservices', [AuthController::class, 'getService']);
+    Route::get('getservices/{id}', [AuthController::class, 'getService']);
     Route::get('getservicesName', [AuthController::class, 'getServicesName']);
 
     //sales
